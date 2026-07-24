@@ -17,19 +17,43 @@
       </label>
     </header>
 
-    <section class="section action-section">
-      <h2 class="section-title">Summarize</h2>
-      <div class="action-buttons">
-        <button id="summarize-btn" class="btn btn-primary">Summarize Page</button>
-        <div class="secondary-buttons">
-          <button id="stop-btn" class="btn btn-outline">Stop Summary</button>
-          <button id="revise-btn" class="btn btn-outline">Revise Summary</button>
-        </div>
+    <div class="url-bar">
+      <span id="url-text" class="url-text">Current page</span>
+    </div>
+
+    <section id="state-idle" class="state-panel">
+      <button id="summarize-btn" class="btn btn-primary">Summarize Page</button>
+    </section>
+
+    <section id="state-loading" class="state-panel">
+      <p class="loading-label">Reading and summarizing the page…</p>
+      <div class="progress-track">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+      <span id="progress-pct" class="progress-pct">0%</span>
+      <button id="stop-btn" class="btn btn-outline">Stop</button>
+    </section>
+
+    <section id="state-results" class="state-panel">
+      <div class="results-header">
+        <span id="summary-meta" class="summary-meta"></span>
+        <button id="copy-btn" class="btn btn-icon">
+          <span class="btn-icon-slot ico-copy"></span>
+          <span class="btn-label">Copy</span>
+        </button>
       </div>
 
-      <div id="output" class="output" tabindex="0">
-        <p class="output-placeholder">Your summary will appear here.</p>
+      <div id="summary-sections" class="summary-sections"></div>
+
+      <div class="results-actions">
+        <button id="revise-btn" class="btn btn-outline">Revise Summary</button>
+        <button id="reset-btn" class="btn btn-outline">New Summary</button>
       </div>
+    </section>
+
+    <section id="state-error" class="state-panel">
+      <p id="error-message" class="error-message"></p>
+      <button id="retry-btn" class="btn btn-primary">Try Again</button>
     </section>
   </div>
 

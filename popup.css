@@ -67,6 +67,33 @@ body {
   color: var(--color-text-muted);
 }
 
+.settings-summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-summary::-webkit-details-marker {
+  display: none;
+}
+
+.settings-summary::after {
+  content: "▾";
+  font-size: 10px;
+  color: var(--color-text-muted);
+  transition: transform 0.15s ease;
+}
+
+.settings-section[open] .settings-summary::after {
+  transform: rotate(180deg);
+}
+
+.settings-section[open] .settings-summary {
+  margin-bottom: var(--spacing-1);
+}
+
 .field-label {
   font-size: 12px;
   color: var(--color-text-muted);
@@ -77,6 +104,10 @@ body {
   font-size: 11px;
   line-height: 1.5;
   color: var(--color-text-muted);
+}
+
+.field-hint--intro {
+  margin-top: 0;
 }
 
 .field-hint a {

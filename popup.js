@@ -15,6 +15,26 @@ const MESSAGE_ACTIONS = {
   SUMMARY_UPDATE: "summary_update",
 };
 
+// Chrome extensions can never read browser-internal pages (chrome://, the
+// extensions page, view-source:, etc.) or the web store, regardless of
+// permissions granted. Detecting this upfront lets us disable "Summarize
+// Page" with a clear explanation instead of failing after the click.
+function isSummarizableUrl(url) {
+  if (!url) {
+    return false;
+  }
+
+  try {
+    const { protocol, hostname } = new URL(url);
+    if (protocol !== "http:" && protocol !== "https:") {
+      return false;
+    }
+    return !["chrome.google.com", "chromewebstore.google.com"].includes(hostname);
+  } catch {
+    return false;
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const extensionToggle = document.getElementById("extension-toggle");
   const apiKeyInput = document.getElementById("api-key-input");
@@ -25,13 +45,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const output = document.getElementById("output");
 
   let saveConfirmationTimeout = null;
+  let isExtensionEnabled = true;
+  let isPageSummarizable = true;
 
   restoreState();
+  checkActiveTab();
 
   extensionToggle.addEventListener("change", () => {
-    const isEnabled = extensionToggle.checked;
-    chrome.storage.local.set({ [STORAGE_KEYS.EXTENSION_ENABLED]: isEnabled });
-    updateSummarizeAvailability(isEnabled);
+    isExtensionEnabled = extensionToggle.checked;
+    chrome.storage.local.set({ [STORAGE_KEYS.EXTENSION_ENABLED]: isExtensionEnabled });
+    updateSummarizeAvailability();
   });
 
   saveKeyBtn.addEventListener("click", () => {
@@ -71,15 +94,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Default to "on" the first time the extension runs, i.e. before
         // any value has ever been saved to storage.
-        const isEnabled = result[STORAGE_KEYS.EXTENSION_ENABLED] !== false;
-        extensionToggle.checked = isEnabled;
-        updateSummarizeAvailability(isEnabled);
+        isExtensionEnabled = result[STORAGE_KEYS.EXTENSION_ENABLED] !== false;
+        extensionToggle.checked = isExtensionEnabled;
+        updateSummarizeAvailability();
       }
     );
   }
 
-  function updateSummarizeAvailability(isEnabled) {
-    summarizeBtn.disabled = !isEnabled;
+  function checkActiveTab() {
+    chrome.tabs.query({ active: true, currentWindow: true }, ([activeTab]) => {
+      isPageSummarizable = isSummarizableUrl(activeTab?.url);
+      updateSummarizeAvailability();
+
+      if (!isPageSummarizable) {
+        renderSummaryText(
+          "PageMind can't read this page. Browser pages (chrome://, the extensions page, the Chrome Web Store, etc.) aren't accessible to extensions — open a regular website to summarize it."
+        );
+      }
+    });
+  }
+
+  function updateSummarizeAvailability() {
+    summarizeBtn.disabled = !isExtensionEnabled || !isPageSummarizable;
   }
 
   function renderSummaryText(text) {

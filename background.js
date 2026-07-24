@@ -105,6 +105,10 @@ async function handleStartSummary() {
     lastPageText = pageText;
     await runSummary(pageText, { isRevision: false });
   } catch (error) {
+    if (error instanceof RestrictedPageError) {
+      sendSummaryUpdate(error.message);
+      return;
+    }
     reportError(error);
   }
 }
@@ -164,18 +168,69 @@ function buildUserPrompt(pageText, isRevision) {
     : pageText;
 }
 
+// Chrome extensions can never read browser-internal pages (chrome://, the
+// extensions page, view-source:, etc.) or the web store, regardless of
+// permissions granted. The popup already checks this before enabling
+// "Summarize Page", but this is checked again here defensively (e.g. if
+// the active tab changed after the popup opened).
+class RestrictedPageError extends Error {
+  constructor() {
+    super(
+      "PageMind can't read this page. Browser pages (chrome://, the extensions page, the Chrome Web Store, etc.) aren't accessible to extensions — open a regular website to summarize it."
+    );
+    this.name = "RestrictedPageError";
+  }
+}
+
+function isSummarizableUrl(url) {
+  if (!url) {
+    return false;
+  }
+
+  try {
+    const { protocol, hostname } = new URL(url);
+    if (protocol !== "http:" && protocol !== "https:") {
+      return false;
+    }
+    return !["chrome.google.com", "chromewebstore.google.com"].includes(hostname);
+  } catch {
+    return false;
+  }
+}
+
+function isRestrictedInjectionError(error) {
+  const message = String(error?.message ?? "").toLowerCase();
+  return (
+    message.includes("cannot access") ||
+    message.includes("cannot be scripted") ||
+    message.includes("extensions gallery") ||
+    message.includes("missing host permission")
+  );
+}
+
 async function scrapeActiveTabText() {
   const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!activeTab?.id) {
     return null;
   }
 
-  const [injectionResult] = await chrome.scripting.executeScript({
-    target: { tabId: activeTab.id },
-    files: ["content.js"],
-  });
+  if (!isSummarizableUrl(activeTab.url)) {
+    throw new RestrictedPageError();
+  }
 
-  return injectionResult?.result ?? null;
+  try {
+    const [injectionResult] = await chrome.scripting.executeScript({
+      target: { tabId: activeTab.id },
+      files: ["content.js"],
+    });
+
+    return injectionResult?.result ?? null;
+  } catch (error) {
+    if (isRestrictedInjectionError(error)) {
+      throw new RestrictedPageError();
+    }
+    throw error;
+  }
 }
 
 async function getApiKey() {

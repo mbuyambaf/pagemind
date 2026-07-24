@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "description": "Summarize any web page in one click. Naked MVP - all processing happens locally in your browser.",
   "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": ["https://api.groq.com/*"],
   "background": {
     "service_worker": "background.js"
   },

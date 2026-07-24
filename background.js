@@ -59,9 +59,11 @@ particular page's content reveals (strengths, gaps, red flags, or
 questions worth asking) — not generic platitudes like "do your research"
 or "read the fine print".
 
-Read the provided text carefully, then return ONLY a valid JSON object —
-no markdown, no code fences, no explanation, nothing else before or
-after the object.
+Read the provided text carefully, then return ONLY a valid JSON object.
+Your entire response must start with { and end with }. Do not wrap it in
+triple backticks or any markdown code fence (do not start with \`\`\`json
+or \`\`\`), do not add any explanation, and do not add anything else
+before or after the object.
 The object must have exactly five keys:
   "page_type": one of "job_board", "job_posting", "social_media", "ecommerce", "landing_page", "article", "other"
   "visitor_intent": a short phrase (roughly 4 to 10 words) describing why someone is likely visiting this page
@@ -267,21 +269,19 @@ async function readStreamedContent(body) {
 // response_format: { type: 'json_object' } is a best-effort constraint on
 // Groq's side, not a hard guarantee — this defensively strips markdown
 // code fences (in case the model wraps the JSON despite instructions not
-// to) and, if there's still leading/trailing prose, falls back to the
-// first top-level {...} block found in the text.
+// to) and any leading/trailing prose. Always extracts the substring
+// between the first '{' and the last '}' as a final step — this recovers
+// from markdown fences (opening, closing, both, or neither, including a
+// missing closing fence if the response got cut off), stray sentences
+// before/after the object, or any other wrapping, regardless of exactly
+// how it's malformed.
 function sanitizeJsonBuffer(rawBuffer) {
   let text = rawBuffer.trim();
 
-  const fenceMatch = text.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
-  if (fenceMatch) {
-    text = fenceMatch[1].trim();
-  }
-
-  if (!text.startsWith('{')) {
-    const objectMatch = text.match(/\{[\s\S]*\}/);
-    if (objectMatch) {
-      text = objectMatch[0];
-    }
+  const firstBrace = text.indexOf('{');
+  const lastBrace = text.lastIndexOf('}');
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    text = text.slice(firstBrace, lastBrace + 1);
   }
 
   return text;

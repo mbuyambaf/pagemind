@@ -179,6 +179,14 @@ body {
 }
 
 /* Results state */
+.summary-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--color-text);
+}
+
 .results-header {
   display: flex;
   align-items: center;
@@ -232,7 +240,7 @@ body {
 }
 
 .summary-sections {
-  max-height: 385px;
+  max-height: 335px;
   overflow-y: auto;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -263,6 +271,13 @@ body {
   font-size: 13px;
   font-weight: 700;
   line-height: 1.3;
+}
+
+.sec-desc {
+  margin: 0 0 var(--spacing-2);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text-muted);
 }
 
 .pts {

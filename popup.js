@@ -73,11 +73,23 @@ function escapeHtml(text) {
 }
 
 function renderSummary(summary) {
-  const sections = Array.isArray(summary) ? summary : [];
+  // Accepts the current { title, sections } shape from background.js, but
+  // falls back to treating `summary` itself as the sections array in case
+  // an older-format response ever comes through.
+  const isPlainArray = Array.isArray(summary);
+  const title = isPlainArray ? '' : summary?.title ?? '';
+  const sections = isPlainArray ? summary : Array.isArray(summary?.sections) ? summary.sections : [];
+
+  const titleEl = document.getElementById('summary-title');
+  if (titleEl) {
+    titleEl.textContent = title;
+    titleEl.style.display = title ? '' : 'none';
+  }
+
   const metaEl = document.getElementById('summary-meta');
   const sectionsEl = document.getElementById('summary-sections');
 
-  const pointCount = sections.reduce((total, section) => total + (section.points?.length ?? 0), 0);
+  const pointCount = sections.reduce((total, section) => total + (section.bullet_points?.length ?? 0), 0);
   if (metaEl) {
     metaEl.textContent = `${sections.length} sections · ${pointCount} points`;
   }
@@ -104,9 +116,16 @@ function renderSummary(summary) {
       `<span class="sec-heading">${escapeHtml(section.heading ?? '')}</span>`;
     sectionEl.appendChild(headEl);
 
+    if (section.description) {
+      const descEl = document.createElement('p');
+      descEl.className = 'sec-desc';
+      descEl.textContent = section.description;
+      sectionEl.appendChild(descEl);
+    }
+
     const listEl = document.createElement('ul');
     listEl.className = 'pts';
-    (section.points ?? []).forEach((point) => {
+    (section.bullet_points ?? []).forEach((point) => {
       const itemEl = document.createElement('li');
       itemEl.innerHTML =
         `<span class="pt-bullet" style="color: ${color};">▸</span>` +
@@ -133,7 +152,13 @@ function buildPlainText() {
     return '';
   }
 
-  const sectionBlocks = [];
+  const blocks = [];
+
+  const titleText = document.getElementById('summary-title')?.textContent?.trim();
+  if (titleText) {
+    blocks.push(titleText);
+  }
+
   sectionsEl.querySelectorAll('.summ-sec').forEach((sectionEl) => {
     const lines = [];
 
@@ -142,14 +167,19 @@ function buildPlainText() {
       lines.push(headingEl.textContent ?? '');
     }
 
+    const descEl = sectionEl.querySelector('.sec-desc');
+    if (descEl?.textContent) {
+      lines.push(descEl.textContent);
+    }
+
     sectionEl.querySelectorAll('.pt-text').forEach((pointEl) => {
       lines.push(`  • ${pointEl.textContent ?? ''}`);
     });
 
-    sectionBlocks.push(lines.join('\n'));
+    blocks.push(lines.join('\n'));
   });
 
-  return sectionBlocks.join('\n\n');
+  return blocks.join('\n\n');
 }
 
 // --- Progress bar ---------------------------------------------------------

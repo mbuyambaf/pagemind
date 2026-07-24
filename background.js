@@ -6,15 +6,21 @@ const MODEL = 'llama-3.3-70b-versatile';
 const API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 const SYSTEM_PROMPT = `You are a precise summarizer. Read the provided text carefully.
-Return ONLY a valid JSON array — no markdown, no code fences,
-no explanation, nothing else before or after the array.
-Each element must have exactly two keys:
+Return ONLY a valid JSON object — no markdown, no code fences,
+no explanation, nothing else before or after the object.
+The object must have exactly two keys:
+  "title": a short, specific title (roughly 4 to 8 words) naming the overall topic of the text
+  "sections": an array of section objects
+Each section object must have exactly three keys:
   "heading": a short, specific, descriptive string
+  "description": one concise sentence of context for what this section covers
   "bullet_points": an array of concise factual strings
 Rules:
   - 3 to 5 sections maximum
   - 2 to 4 bullet points per section
+  - The title must be specific, not generic (not 'Summary' or 'Article Overview')
   - Headings must be specific, not generic (not 'Overview' or 'Summary')
+  - Each description must be a single sentence and must not just restate the heading
   - Bullets must be facts from the text, not paraphrased vagueness
   - Do not invent information not present in the source text`;
 

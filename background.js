@@ -5,23 +5,40 @@ const GROQ_API_KEY = 'PASTE_YOUR_KEY_HERE';
 const MODEL = 'llama-3.3-70b-versatile';
 const API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-const SYSTEM_PROMPT = `You are a precise summarizer. Read the provided text carefully.
-Return ONLY a valid JSON object — no markdown, no code fences,
-no explanation, nothing else before or after the object.
+const SYSTEM_PROMPT = `You are an expert summarizer who reasons from first principles: before
+writing anything, identify the fundamental ideas in the text — the core
+subject, the underlying causes/mechanisms/motivations, and how the
+supporting facts connect back to them — rather than skimming for
+standalone phrases or repeating surface-level wording from the source.
+
+Your goal is comprehension, not compression: a person who reads ONLY your
+summary (title, section descriptions, and bullet points), without ever
+reading the original page, should come away with a genuine, general
+understanding of what the page is about, why it matters, and how its
+parts fit together — not just a pile of disconnected facts.
+
+Read the provided text carefully, then return ONLY a valid JSON object —
+no markdown, no code fences, no explanation, nothing else before or
+after the object.
 The object must have exactly two keys:
   "title": a short, specific title (roughly 4 to 8 words) naming the overall topic of the text
   "sections": an array of section objects
 Each section object must have exactly three keys:
   "heading": a short, specific, descriptive string
-  "description": one concise sentence of context for what this section covers
+  "description": one concise sentence explaining the core idea of this section and why it's relevant to the overall topic
   "bullet_points": an array of concise factual strings
 Rules:
   - 3 to 5 sections maximum
   - 2 to 4 bullet points per section
+  - Break ideas down to their fundamental "what" and "why", not just a
+    restatement of sentences from the source text
   - The title must be specific, not generic (not 'Summary' or 'Article Overview')
   - Headings must be specific, not generic (not 'Overview' or 'Summary')
   - Each description must be a single sentence and must not just restate the heading
   - Bullets must be facts from the text, not paraphrased vagueness
+  - Taken together, the title, descriptions, and bullets must form a
+    coherent narrative: someone reading only the summary should
+    understand the main topic, its context, and why it matters
   - Do not invent information not present in the source text`;
 
 // Tracks the in-flight Groq request so 'stop_summary' can abort it.
@@ -83,7 +100,7 @@ async function handleStartSummary(message) {
         model: MODEL,
         stream: true,
         temperature: 0.2,
-        max_tokens: 1024,
+        max_tokens: 1536,
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: pageText },

@@ -1,50 +1,42 @@
 # PageMind
 
 A "naked MVP" Chrome extension (Manifest V3) that summarizes the current web
-page. There is no backend — everything happens in the browser, and **no API
-key is required to use it**.
+page. There is no backend server; everything happens in the browser, using
+the Groq Chat Completions API to generate summaries.
 
 ## How summarization works
 
-On "Summarize Page", the background service worker picks the best available
-engine, in this order:
+1. Clicking "Summarize Page" sends a message to the background service
+   worker with the active tab's id and URL.
+2. The service worker injects `content.js` into that tab to scrape the
+   page's readable text (strips nav/header/footer/ads, drops short lines,
+   trims to a reasonable length).
+3. That text is sent to the Groq Chat Completions API
+   (`llama-3.3-70b-versatile`), streamed, and parsed into a JSON array of
+   `{ heading, bullet_points }` sections.
+4. The popup renders the sections as an expandable summary, with Stop and
+   Revise actions, and a Copy-to-clipboard button.
 
-1. **Chrome's built-in on-device AI** (Prompt API / Gemini Nano) — free,
-   fully local, no API key. Used automatically on Chrome 138+ when the
-   device meets the hardware requirements.
-2. **Groq cloud API** — only used if you've optionally saved a free
-   [Groq API key](https://console.groq.com/keys) in Settings. Purely a
-   quality upgrade; never required.
-3. **A local open-source model** ([`onnx-community/Qwen2.5-0.5B-Instruct`](https://huggingface.co/onnx-community/Qwen2.5-0.5B-Instruct)
-   from the Hugging Face Hub) — runs fully client-side via
-   [`@huggingface/transformers`](https://github.com/huggingface/transformers.js)
-   (WebAssembly) in a hidden offscreen document. Works in any Chromium
-   browser with no hardware gate, so it's the guaranteed fallback: the
-   extension never *requires* an account or credential to produce a
-   summary. The model (~400MB) downloads once and is cached by the browser.
+**A Groq API key is required.** It's hardcoded in `background.js` — there
+is no user-facing settings UI. Get a free key (no credit card) at
+[console.groq.com/keys](https://console.groq.com/keys) and paste it into
+the `GROQ_API_KEY` constant before loading the extension.
 
 ## Project layout
 
-- `manifest.json` — Manifest V3 config.
-- `popup.html` / `popup.css` / `popup.js` — the toolbar popup UI and its logic.
-- `background.js` — service worker: message routing + all three summarization engines.
-- `content.js` — injected on-demand to scrape the page's readable text.
-- `offscreen.html` / `offscreen.js` — hosts the local open-source model (engine 3), since a service worker can be suspended mid-task and isn't a safe place to keep a loaded model resident.
-- `vendor/` — bundled `@huggingface/transformers` runtime files (see `vendor/README.md`). Required locally because Manifest V3 disallows extensions from executing remotely hosted code.
-
-## Development
-
-Vendored runtime files are already committed, so no build step is required
-to load the extension as-is. To regenerate them after bumping the
-`@huggingface/transformers` version in `package.json`:
-
-```sh
-npm install
-npm run vendor:transformers
-```
+- `manifest.json` — Manifest V3 config (permissions, background service
+  worker, popup action).
+- `popup.html` / `popup.css` / `popup.js` — the toolbar popup UI: state
+  panels (idle/loading/results/error), progress bar, and summary
+  rendering.
+- `background.js` — service worker: message routing and the Groq API call
+  (streaming, JSON parsing, abort/stop support).
+- `content.js` — injected on-demand via `chrome.scripting.executeScript`
+  to scrape and clean the page's readable text.
 
 ## Loading the extension
 
-1. Open `chrome://extensions`.
-2. Enable "Developer mode".
-3. Click "Load unpacked" and select this repository's root folder.
+1. Paste a real Groq API key into `GROQ_API_KEY` in `background.js`.
+2. Open `chrome://extensions`.
+3. Enable "Developer mode".
+4. Click "Load unpacked" and select this repository's root folder.

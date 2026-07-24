@@ -150,7 +150,8 @@ async function handleStartSummary(message) {
         model: MODEL,
         stream: true,
         temperature: 0.2,
-        max_tokens: 1792,
+        max_tokens: 2048,
+        response_format: { type: 'json_object' },
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: pageText },
@@ -164,17 +165,18 @@ async function handleStartSummary(message) {
       throw new Error(describeApiError(response.status, errorBody));
     }
 
-    const buffer = await readStreamedContent(response.body);
+    const { buffer, finishReason } = await readStreamedContent(response.body);
 
     try {
-      const parsed = JSON.parse(buffer);
+      const parsed = JSON.parse(sanitizeJsonBuffer(buffer));
       notifyPopup({ type: 'summary_complete', summary: parsed });
     } catch (parseError) {
-      console.error('PageMind: failed to parse Groq response as JSON', parseError, buffer);
-      notifyPopup({
-        type: 'summary_error',
-        message: 'The AI returned an unexpected format. Try again.',
-      });
+      console.error('PageMind: failed to parse Groq response as JSON', parseError, { finishReason, buffer });
+      const message =
+        finishReason === 'length'
+          ? 'The summary was cut off before finishing (response too long). Try again, or shorten the page.'
+          : 'The AI returned an unexpected format. Try again.';
+      notifyPopup({ type: 'summary_error', message });
     }
   } catch (error) {
     if (error?.name !== 'AbortError') {
@@ -220,6 +222,7 @@ async function readStreamedContent(body) {
   const decoder = new TextDecoder();
   let leftover = '';
   let buffer = '';
+  let finishReason = null;
 
   while (true) {
     const { done, value } = await reader.read();
@@ -244,9 +247,13 @@ async function readStreamedContent(body) {
 
       try {
         const parsedChunk = JSON.parse(payload);
-        const delta = parsedChunk?.choices?.[0]?.delta?.content;
+        const choice = parsedChunk?.choices?.[0];
+        const delta = choice?.delta?.content;
         if (delta) {
           buffer += delta;
+        }
+        if (choice?.finish_reason) {
+          finishReason = choice.finish_reason;
         }
       } catch (error) {
         // Ignore malformed SSE chunks; keep reading.
@@ -254,7 +261,30 @@ async function readStreamedContent(body) {
     }
   }
 
-  return buffer;
+  return { buffer, finishReason };
+}
+
+// response_format: { type: 'json_object' } is a best-effort constraint on
+// Groq's side, not a hard guarantee — this defensively strips markdown
+// code fences (in case the model wraps the JSON despite instructions not
+// to) and, if there's still leading/trailing prose, falls back to the
+// first top-level {...} block found in the text.
+function sanitizeJsonBuffer(rawBuffer) {
+  let text = rawBuffer.trim();
+
+  const fenceMatch = text.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  if (fenceMatch) {
+    text = fenceMatch[1].trim();
+  }
+
+  if (!text.startsWith('{')) {
+    const objectMatch = text.match(/\{[\s\S]*\}/);
+    if (objectMatch) {
+      text = objectMatch[0];
+    }
+  }
+
+  return text;
 }
 
 // Uses chrome.runtime.sendMessage (not sendResponse) since the popup's

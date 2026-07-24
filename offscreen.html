@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PageMind offscreen inference host</title>
+</head>
+<body>
+  <!--
+    This page has no visible UI. It exists solely to host the WebAssembly
+    on-device model (via @huggingface/transformers) in a persistent document
+    context, since Manifest V3 service workers can be suspended mid-task and
+    are not a reliable place to keep a loaded ML model resident.
+  -->
+  <script type="module" src="offscreen.js"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "pagemind",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PageMind Chrome extension - summarize any page with free, local AI. No backend, no required API key.",
+  "scripts": {
+    "vendor:transformers": "node scripts/copy-transformers-vendor.js"
+  },
+  "devDependencies": {
+    "@huggingface/transformers": "^3.7.5"
+  }
+}

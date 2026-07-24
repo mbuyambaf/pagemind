@@ -31,31 +31,6 @@
         <p class="output-placeholder">Your summary will appear here.</p>
       </div>
     </section>
-
-    <details class="section settings-section">
-      <summary class="section-title settings-summary">Advanced: cloud API key (optional)</summary>
-      <p class="field-hint field-hint--intro">
-        PageMind works out of the box with no key: it uses Chrome's
-        on-device AI when available, and otherwise a free open-source model
-        that runs locally in your browser. Adding a Groq key below is
-        entirely optional and only used as a quality upgrade.
-      </p>
-      <label class="field-label" for="api-key-input">Groq API Key</label>
-      <div class="field-row">
-        <input
-          type="password"
-          id="api-key-input"
-          class="text-input"
-          placeholder="Paste your API key"
-          autocomplete="off"
-        />
-        <button id="save-key-btn" class="btn btn-secondary">Save Key</button>
-      </div>
-      <p class="field-hint">
-        Get one free at
-        <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">console.groq.com</a>.
-      </p>
-    </details>
   </div>
 
   <script src="popup.js"></script>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PageMind</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <span class="app-title">PageMind</span>
+      <label class="toggle" for="extension-toggle" title="Turn extension on or off">
+        <input type="checkbox" id="extension-toggle" checked />
+        <span class="toggle-track">
+          <span class="toggle-thumb"></span>
+        </span>
+      </label>
+    </header>
+
+    <section class="section settings-section">
+      <h2 class="section-title">Settings</h2>
+      <label class="field-label" for="api-key-input">API Key</label>
+      <div class="field-row">
+        <input
+          type="password"
+          id="api-key-input"
+          class="text-input"
+          placeholder="Paste your API key"
+          autocomplete="off"
+        />
+        <button id="save-key-btn" class="btn btn-secondary">Save Key</button>
+      </div>
+    </section>
+
+    <section class="section action-section">
+      <h2 class="section-title">Summarize</h2>
+      <div class="action-buttons">
+        <button id="summarize-btn" class="btn btn-primary">Summarize Page</button>
+        <div class="secondary-buttons">
+          <button id="stop-btn" class="btn btn-outline">Stop Summary</button>
+          <button id="revise-btn" class="btn btn-outline">Revise Summary</button>
+        </div>
+      </div>
+
+      <div id="output" class="output" tabindex="0">
+        <p class="output-placeholder">Your summary will appear here.</p>
+      </div>
+    </section>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

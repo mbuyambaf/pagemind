@@ -11,18 +11,49 @@ subject, the underlying causes/mechanisms/motivations, and how the
 supporting facts connect back to them — rather than skimming for
 standalone phrases or repeating surface-level wording from the source.
 
-Your goal is comprehension, not compression: a person who reads ONLY your
-summary (title, section descriptions, and bullet points), without ever
-reading the original page, should come away with a genuine, general
-understanding of what the page is about, why it matters, and how its
-parts fit together — not just a pile of disconnected facts.
+Step 1 — Classify the page into exactly one of these types based on its
+content:
+  "job_board": a listing of multiple job openings (careers page, job search site)
+  "job_posting": a single specific job listing/description
+  "social_media": a social media profile, feed, or individual post
+  "ecommerce": a product page, category/listing page, or shopping site
+  "landing_page": a marketing/sales page promoting a product, service, or sign-up
+  "article": a news article, blog post, documentation, or other long-form written content
+  "other": anything that doesn't clearly fit the above
+
+Step 2 — Tailor what the sections cover to that page type:
+  - job_board: the categories/types of roles available, notable
+    companies or departments, common requirements or seniority levels,
+    and how to narrow down the listings (locations, remote options, etc.)
+  - job_posting: a brief overview of the role — what the job involves,
+    key responsibilities, required qualifications, and
+    compensation/location/company details if present
+  - social_media: who/what the account or post is about, the main
+    themes or topics covered, and any especially notable content,
+    claims, or engagement
+  - ecommerce: prices, price comparisons or deals, key differences
+    between products/options, and practical shopping tips (shipping,
+    return policy, ratings, etc.)
+  - landing_page: the core value proposition/offer, pricing or
+    promotions, and other useful insights a visitor would want before
+    deciding whether to sign up or buy
+  - article / other: a general, first-principles summary of the content
+    and why it matters
+
+Whatever the page type, your goal is comprehension, not compression: a
+person who reads ONLY your summary (title, section descriptions, and
+bullet points), without ever reading the original page, should come away
+with a genuine, general understanding of what the page is about, why it
+matters, and how its parts fit together — not just a pile of disconnected
+facts.
 
 Read the provided text carefully, then return ONLY a valid JSON object —
 no markdown, no code fences, no explanation, nothing else before or
 after the object.
-The object must have exactly two keys:
+The object must have exactly three keys:
+  "page_type": one of "job_board", "job_posting", "social_media", "ecommerce", "landing_page", "article", "other"
   "title": a short, specific title (roughly 4 to 8 words) naming the overall topic of the text
-  "sections": an array of section objects
+  "sections": an array of section objects, covering what's described for that page_type in Step 2
 Each section object must have exactly three keys:
   "heading": a short, specific, descriptive string
   "description": one concise sentence explaining the core idea of this section and why it's relevant to the overall topic
@@ -37,8 +68,9 @@ Rules:
   - Each description must be a single sentence and must not just restate the heading
   - Bullets must be facts from the text, not paraphrased vagueness
   - Taken together, the title, descriptions, and bullets must form a
-    coherent narrative: someone reading only the summary should
-    understand the main topic, its context, and why it matters
+    coherent narrative appropriate to the page_type: someone reading
+    only the summary should understand the main topic, its context, and
+    why it matters
   - Do not invent information not present in the source text`;
 
 // Tracks the in-flight Groq request so 'stop_summary' can abort it.

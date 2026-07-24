@@ -179,12 +179,32 @@ body {
 }
 
 /* Results state */
+.page-type-badge {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 2px var(--spacing-2);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-primary);
+  background: rgba(79, 70, 229, 0.1);
+  border-radius: 999px;
+}
+
 .summary-title {
   margin: 0;
   font-size: 15px;
   font-weight: 700;
   line-height: 1.35;
   color: var(--color-text);
+}
+
+/* Tighter spacing between the badge and the title directly below it,
+   overriding the .state-panel > * + * generic child spacing (higher
+   specificity via the #id here beats that class-based selector). */
+#page-type-badge + .summary-title {
+  margin-top: var(--spacing-1);
 }
 
 .results-header {
@@ -240,7 +260,7 @@ body {
 }
 
 .summary-sections {
-  max-height: 335px;
+  max-height: 305px;
   overflow-y: auto;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);

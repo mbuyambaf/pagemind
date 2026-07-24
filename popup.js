@@ -9,6 +9,18 @@
 const STATES = ['idle', 'loading', 'results', 'error'];
 const SECTION_COLORS = ['#6B65D4', '#1B9B6F', '#C47F18', '#5A9020'];
 
+// Human-readable labels for the page_type background.js classifies the
+// page as, shown as a small badge above the summary title.
+const PAGE_TYPE_LABELS = {
+  job_board: 'Job Board',
+  job_posting: 'Job Posting',
+  social_media: 'Social Media',
+  ecommerce: 'Shopping',
+  landing_page: 'Landing Page',
+  article: 'Article',
+  other: 'Web Page',
+};
+
 // URL schemes extensions can never read, regardless of permissions granted.
 const RESTRICTED_URL_PREFIXES = ['chrome://', 'chrome-extension://', 'about:', 'edge://', 'devtools://', 'view-source:'];
 
@@ -73,12 +85,20 @@ function escapeHtml(text) {
 }
 
 function renderSummary(summary) {
-  // Accepts the current { title, sections } shape from background.js, but
-  // falls back to treating `summary` itself as the sections array in case
-  // an older-format response ever comes through.
+  // Accepts the current { page_type, title, sections } shape from
+  // background.js, but falls back to treating `summary` itself as the
+  // sections array in case an older-format response ever comes through.
   const isPlainArray = Array.isArray(summary);
   const title = isPlainArray ? '' : summary?.title ?? '';
+  const pageType = isPlainArray ? '' : summary?.page_type ?? '';
   const sections = isPlainArray ? summary : Array.isArray(summary?.sections) ? summary.sections : [];
+
+  const badgeEl = document.getElementById('page-type-badge');
+  if (badgeEl) {
+    const label = PAGE_TYPE_LABELS[pageType];
+    badgeEl.textContent = label ?? '';
+    badgeEl.style.display = label ? '' : 'none';
+  }
 
   const titleEl = document.getElementById('summary-title');
   if (titleEl) {
@@ -154,9 +174,10 @@ function buildPlainText() {
 
   const blocks = [];
 
+  const badgeText = document.getElementById('page-type-badge')?.textContent?.trim();
   const titleText = document.getElementById('summary-title')?.textContent?.trim();
   if (titleText) {
-    blocks.push(titleText);
+    blocks.push(badgeText ? `${titleText} [${badgeText}]` : titleText);
   }
 
   sectionsEl.querySelectorAll('.summ-sec').forEach((sectionEl) => {

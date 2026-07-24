@@ -19,7 +19,7 @@
 
     <section class="section settings-section">
       <h2 class="section-title">Settings</h2>
-      <label class="field-label" for="api-key-input">API Key</label>
+      <label class="field-label" for="api-key-input">Groq API Key (optional)</label>
       <div class="field-row">
         <input
           type="password"
@@ -30,6 +30,12 @@
         />
         <button id="save-key-btn" class="btn btn-secondary">Save Key</button>
       </div>
+      <p class="field-hint">
+        PageMind uses Chrome's free, on-device AI automatically when it's
+        available (Chrome 138+). A key is only needed as a fallback on
+        browsers without on-device support — get one free at
+        <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">console.groq.com</a>.
+      </p>
     </section>
 
     <section class="section action-section">

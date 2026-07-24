@@ -72,6 +72,22 @@ body {
   color: var(--color-text-muted);
 }
 
+.field-hint {
+  margin: var(--spacing-1) 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.field-hint a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.field-hint a:hover {
+  text-decoration: underline;
+}
+
 .field-row {
   display: flex;
   gap: var(--spacing-2);

@@ -87,7 +87,8 @@ async function handleStartSummary(message) {
     });
 
     if (!response.ok || !response.body) {
-      throw new Error(`Groq API request failed (${response.status})`);
+      const errorBody = await response.text().catch(() => '');
+      throw new Error(describeApiError(response.status, errorBody));
     }
 
     const buffer = await readStreamedContent(response.body);
@@ -96,6 +97,7 @@ async function handleStartSummary(message) {
       const parsed = JSON.parse(buffer);
       notifyPopup({ type: 'summary_complete', summary: parsed });
     } catch (parseError) {
+      console.error('PageMind: failed to parse Groq response as JSON', parseError, buffer);
       notifyPopup({
         type: 'summary_error',
         message: 'The AI returned an unexpected format. Try again.',
@@ -103,14 +105,34 @@ async function handleStartSummary(message) {
     }
   } catch (error) {
     if (error?.name !== 'AbortError') {
+      console.error('PageMind: summarization failed', error);
       notifyPopup({
         type: 'summary_error',
-        message: 'Something went wrong while summarizing. Try again.',
+        message: error?.message || 'Something went wrong while summarizing. Try again.',
       });
     }
   } finally {
     activeController = null;
   }
+}
+
+function describeApiError(status, errorBody) {
+  if (status === 401 || status === 403) {
+    return 'Groq rejected the API key (401/403). Paste a valid key into GROQ_API_KEY in background.js.';
+  }
+  if (status === 429) {
+    return 'Groq rate limit hit (429). Wait a moment and try again.';
+  }
+
+  let detail = errorBody;
+  try {
+    const parsed = JSON.parse(errorBody);
+    detail = parsed?.error?.message || errorBody;
+  } catch {
+    // errorBody wasn't JSON; use it as-is.
+  }
+
+  return `Groq API request failed (${status}): ${detail || 'no further details.'}`;
 }
 
 function handleStopSummary() {

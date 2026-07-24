@@ -47,13 +47,27 @@ with a genuine, general understanding of what the page is about, why it
 matters, and how its parts fit together — not just a pile of disconnected
 facts.
 
+Step 3 — Infer the visitor's likely intent for being on this page (for
+example: deciding whether to apply for this job, comparing this product
+before buying, evaluating this profile or account, deciding whether to
+sign up, or just researching/browsing the topic). Then, reasoning as a
+domain expert from first principles, surface 2 to 4 practical
+considerations that would genuinely help someone with that intent —
+grounded in the fundamentals of this kind of decision (e.g. what actually
+separates a good option from a bad one here), and specific to what this
+particular page's content reveals (strengths, gaps, red flags, or
+questions worth asking) — not generic platitudes like "do your research"
+or "read the fine print".
+
 Read the provided text carefully, then return ONLY a valid JSON object —
 no markdown, no code fences, no explanation, nothing else before or
 after the object.
-The object must have exactly three keys:
+The object must have exactly five keys:
   "page_type": one of "job_board", "job_posting", "social_media", "ecommerce", "landing_page", "article", "other"
+  "visitor_intent": a short phrase (roughly 4 to 10 words) describing why someone is likely visiting this page
   "title": a short, specific title (roughly 4 to 8 words) naming the overall topic of the text
   "sections": an array of section objects, covering what's described for that page_type in Step 2
+  "expert_considerations": an array of 2 to 4 concise, first-principles considerations tailored to the visitor_intent, as described in Step 3
 Each section object must have exactly three keys:
   "heading": a short, specific, descriptive string
   "description": one concise sentence explaining the core idea of this section and why it's relevant to the overall topic
@@ -67,6 +81,10 @@ Rules:
   - Headings must be specific, not generic (not 'Overview' or 'Summary')
   - Each description must be a single sentence and must not just restate the heading
   - Bullets must be facts from the text, not paraphrased vagueness
+  - expert_considerations must be genuinely useful and specific to this
+    page and the inferred visitor_intent, reflecting fundamental
+    first-principles thinking about the underlying decision — never
+    generic advice that could apply to any page
   - Taken together, the title, descriptions, and bullets must form a
     coherent narrative appropriate to the page_type: someone reading
     only the summary should understand the main topic, its context, and
@@ -132,7 +150,7 @@ async function handleStartSummary(message) {
         model: MODEL,
         stream: true,
         temperature: 0.2,
-        max_tokens: 1536,
+        max_tokens: 1792,
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: pageText },

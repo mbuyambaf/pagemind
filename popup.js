@@ -85,12 +85,19 @@ function escapeHtml(text) {
 }
 
 function renderSummary(summary) {
-  // Accepts the current { page_type, title, sections } shape from
-  // background.js, but falls back to treating `summary` itself as the
-  // sections array in case an older-format response ever comes through.
+  // Accepts the current { page_type, visitor_intent, title, sections,
+  // expert_considerations } shape from background.js, but falls back to
+  // treating `summary` itself as the sections array in case an
+  // older-format response ever comes through.
   const isPlainArray = Array.isArray(summary);
   const title = isPlainArray ? '' : summary?.title ?? '';
   const pageType = isPlainArray ? '' : summary?.page_type ?? '';
+  const visitorIntent = isPlainArray ? '' : summary?.visitor_intent ?? '';
+  const expertConsiderations = isPlainArray
+    ? []
+    : Array.isArray(summary?.expert_considerations)
+      ? summary.expert_considerations
+      : [];
   const sections = isPlainArray ? summary : Array.isArray(summary?.sections) ? summary.sections : [];
 
   const badgeEl = document.getElementById('page-type-badge');
@@ -156,6 +163,46 @@ function renderSummary(summary) {
 
     sectionsEl.appendChild(sectionEl);
   });
+
+  if (expertConsiderations.length > 0) {
+    sectionsEl.appendChild(buildExpertConsiderationsBlock(visitorIntent, expertConsiderations));
+  }
+}
+
+// Renders the "why you're likely here" + first-principles expert advice
+// as a visually distinct block appended after the regular sections,
+// inside the same scrollable #summary-sections container (so it shares
+// that container's height budget instead of needing its own).
+function buildExpertConsiderationsBlock(visitorIntent, considerations) {
+  const blockEl = document.createElement('div');
+  blockEl.className = 'expert-block';
+
+  const headEl = document.createElement('div');
+  headEl.className = 'expert-head';
+  headEl.innerHTML =
+    '<span class="expert-icon">💡</span>' +
+    '<span class="expert-heading">Expert Considerations</span>';
+  blockEl.appendChild(headEl);
+
+  if (visitorIntent) {
+    const intentEl = document.createElement('p');
+    intentEl.className = 'expert-intent';
+    intentEl.innerHTML = `Likely here to: <span class="expert-intent-text">${escapeHtml(visitorIntent)}</span>`;
+    blockEl.appendChild(intentEl);
+  }
+
+  const listEl = document.createElement('ul');
+  listEl.className = 'expert-list';
+  considerations.forEach((consideration) => {
+    const itemEl = document.createElement('li');
+    itemEl.innerHTML =
+      '<span class="expert-bullet">✓</span>' +
+      `<span class="expert-text">${escapeHtml(consideration)}</span>`;
+    listEl.appendChild(itemEl);
+  });
+  blockEl.appendChild(listEl);
+
+  return blockEl;
 }
 
 function showError(message) {
@@ -199,6 +246,22 @@ function buildPlainText() {
 
     blocks.push(lines.join('\n'));
   });
+
+  const expertBlockEl = sectionsEl.querySelector('.expert-block');
+  if (expertBlockEl) {
+    const lines = ['Expert Considerations'];
+
+    const intentText = expertBlockEl.querySelector('.expert-intent-text')?.textContent;
+    if (intentText) {
+      lines.push(`Likely here to: ${intentText}`);
+    }
+
+    expertBlockEl.querySelectorAll('.expert-text').forEach((el) => {
+      lines.push(`  ✓ ${el.textContent ?? ''}`);
+    });
+
+    blocks.push(lines.join('\n'));
+  }
 
   return blocks.join('\n\n');
 }

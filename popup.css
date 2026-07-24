@@ -327,6 +327,73 @@ body {
   color: var(--color-text);
 }
 
+/* Expert considerations — appended after the regular sections inside
+   #summary-sections, styled distinctly (warm accent) to signal this is
+   inferred advice/insight rather than a fact pulled from the page. */
+.expert-block {
+  padding: var(--spacing-3);
+  background: #fffbeb;
+  border-top: 1px solid var(--color-border);
+}
+
+.expert-head {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  margin-bottom: var(--spacing-2);
+}
+
+.expert-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.expert-heading {
+  font-size: 13px;
+  font-weight: 700;
+  color: #92610a;
+}
+
+.expert-intent {
+  margin: 0 0 var(--spacing-2);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.expert-intent-text {
+  font-style: italic;
+  color: var(--color-text);
+}
+
+.expert-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.expert-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-1);
+}
+
+.expert-bullet {
+  flex-shrink: 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #92610a;
+}
+
+.expert-text {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
 .results-actions {
   display: flex;
   gap: var(--spacing-2);

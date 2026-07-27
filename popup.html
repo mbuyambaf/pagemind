@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PageMind</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <span class="app-title">PageMind</span>
+      <label class="toggle" for="extension-toggle" title="Turn extension on or off">
+        <input type="checkbox" id="extension-toggle" checked />
+        <span class="toggle-track">
+          <span class="toggle-thumb"></span>
+        </span>
+      </label>
+    </header>
+
+    <div class="url-bar">
+      <span id="url-text" class="url-text">Current page</span>
+    </div>
+
+    <section id="state-idle" class="state-panel">
+      <button id="summarize-btn" class="btn btn-primary">Summarize Page</button>
+    </section>
+
+    <section id="state-loading" class="state-panel">
+      <p class="loading-label">Reading and summarizing the page…</p>
+      <div class="progress-track">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+      <span id="progress-pct" class="progress-pct">0%</span>
+      <button id="stop-btn" class="btn btn-outline">Stop</button>
+    </section>
+
+    <section id="state-results" class="state-panel">
+      <span id="page-type-badge" class="page-type-badge"></span>
+      <h2 id="summary-title" class="summary-title"></h2>
+      <div class="results-header">
+        <span id="summary-meta" class="summary-meta"></span>
+        <button id="copy-btn" class="btn btn-icon">
+          <span class="btn-icon-slot ico-copy"></span>
+          <span class="btn-label">Copy</span>
+        </button>
+      </div>
+
+      <div id="summary-sections" class="summary-sections"></div>
+
+      <div class="results-actions">
+        <button id="revise-btn" class="btn btn-outline">Revise Summary</button>
+        <button id="reset-btn" class="btn btn-outline">New Summary</button>
+      </div>
+    </section>
+
+    <section id="state-error" class="state-panel">
+      <p id="error-message" class="error-message"></p>
+      <button id="retry-btn" class="btn btn-primary">Try Again</button>
+    </section>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

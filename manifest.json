@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "PageMind",
+  "version": "0.1.0",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": ["https://api.groq.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  }
+}

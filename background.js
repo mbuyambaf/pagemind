@@ -173,11 +173,20 @@ async function handleStartSummary(message) {
       const parsed = JSON.parse(sanitizeJsonBuffer(buffer));
       notifyPopup({ type: 'summary_complete', summary: parsed });
     } catch (parseError) {
-      console.error('PageMind: failed to parse Groq response as JSON', parseError, { finishReason, buffer });
+      // Log each piece as its own argument (not nested in an object) so
+      // the parse error and raw buffer are visible in the console without
+      // needing to expand a collapsed object. Also surface a preview
+      // directly in the popup's error message, since not everyone will
+      // open the service worker's DevTools console to look.
+      console.error('PageMind: failed to parse Groq response as JSON');
+      console.error('PageMind: parse error was:', parseError.message);
+      console.error('PageMind: finish reason was:', finishReason);
+      console.error('PageMind: raw buffer was:', buffer);
+
       const message =
         finishReason === 'length'
           ? 'The summary was cut off before finishing (response too long). Try again, or shorten the page.'
-          : 'The AI returned an unexpected format. Try again.';
+          : `The AI returned an unexpected format (${parseError.message}). Response started with: ${previewBuffer(buffer)}`;
       notifyPopup({ type: 'summary_error', message });
     }
   } catch (error) {
@@ -275,6 +284,18 @@ async function readStreamedContent(body) {
 // missing closing fence if the response got cut off), stray sentences
 // before/after the object, or any other wrapping, regardless of exactly
 // how it's malformed.
+// Produces a short, single-line preview of the raw model output for
+// display directly in the popup's error message, so the actual cause is
+// visible without needing to open the service worker's DevTools console.
+function previewBuffer(rawBuffer) {
+  const PREVIEW_LENGTH = 180;
+  const collapsed = rawBuffer.replace(/\s+/g, ' ').trim();
+  if (!collapsed) {
+    return '(empty response)';
+  }
+  return collapsed.length > PREVIEW_LENGTH ? `${collapsed.slice(0, PREVIEW_LENGTH)}…` : collapsed;
+}
+
 function sanitizeJsonBuffer(rawBuffer) {
   let text = rawBuffer.trim();
 
@@ -283,6 +304,11 @@ function sanitizeJsonBuffer(rawBuffer) {
   if (firstBrace !== -1 && lastBrace > firstBrace) {
     text = text.slice(firstBrace, lastBrace + 1);
   }
+
+  // Another common LLM mistake: a trailing comma right before a closing
+  // } or ], which is valid in JSON5/JS object literals but not in strict
+  // JSON.
+  text = text.replace(/,\s*([}\]])/g, '$1');
 
   return text;
 }
